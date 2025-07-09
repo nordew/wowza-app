@@ -1,28 +1,27 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import {
+	Inter_400Regular,
+	Inter_700Bold,
+	useFonts,
+} from '@expo-google-fonts/inter'
+import React from 'react'
+import { ActivityIndicator, View } from 'react-native'
+import 'react-native-gesture-handler'
+import AppNavigator from './src/navigation/AppNavigator'
+import { colors } from './src/styles/theme'
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+export default function App() {
+	let [fontsLoaded] = useFonts({
+		Inter_400Regular,
+		Inter_700Bold,
+	})
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+	if (!fontsLoaded) {
+		return (
+			<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+				<ActivityIndicator size='large' color={colors.primary} />
+			</View>
+		)
+	}
 
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <NewAppScreen templateFileName="App.tsx" />
-    </View>
-  );
+	return <AppNavigator />
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
-
-export default App;
