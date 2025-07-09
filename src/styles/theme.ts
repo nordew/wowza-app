@@ -1,7 +1,8 @@
 export const colors = {
-	primary: '#F3C81E',
+	primary: '#FFC700', // A vibrant yellow
 	black: '#000000',
 	white: '#FFFFFF',
-	text: '#FFFFFF',
-	background: '#000000',
+	text: '#FFFFFF', // White text for dark backgrounds
+	background: '#121212', // A dark, near-black for screens
+	border: '#444444', // A subtle border color
 }

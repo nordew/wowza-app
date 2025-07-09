@@ -1,11 +1,13 @@
+import { initSignUp } from '@/api/authService'
 import Header from '@/components/common/Header'
 import PrimaryButton from '@/components/common/PrimaryButton'
 import { RootStackParamList } from '@/navigation/AppNavigator'
 import { colors } from '@/styles/theme'
 import { StackNavigationProp } from '@react-navigation/stack'
-import { AsYouType, isValidPhoneNumber } from 'libphonenumber-js'
 import React, { useEffect, useRef, useState } from 'react'
 import {
+	ActivityIndicator,
+	Alert,
 	Animated,
 	Keyboard,
 	StyleSheet,
@@ -27,7 +29,7 @@ type Props = {
 
 const SignUpScreen = ({ navigation }: Props) => {
 	const [phone, setPhone] = useState('')
-	const [isValid, setIsValid] = useState(false)
+	const [isLoading, setIsLoading] = useState(false)
 	const fadeAnim = useRef(new Animated.Value(0)).current
 	const insets = useSafeAreaInsets()
 
@@ -41,10 +43,33 @@ const SignUpScreen = ({ navigation }: Props) => {
 	}, [])
 
 	const handlePhoneChange = (text: string) => {
-		const asYouType = new AsYouType('US')
-		const formatted = asYouType.input(text)
+		const cleaned = ('' + text).replace(/\D/g, '')
+		let formatted = ''
+
+		if (cleaned.length > 0) {
+			formatted = '(' + cleaned.substring(0, 3)
+		}
+		if (cleaned.length > 3) {
+			formatted += ') ' + cleaned.substring(3, 6)
+		}
+		if (cleaned.length > 6) {
+			formatted += '-' + cleaned.substring(6, 10)
+		}
 		setPhone(formatted)
-		setIsValid(isValidPhoneNumber(formatted, 'US'))
+	}
+
+	const handleContinue = async () => {
+		setIsLoading(true)
+		try {
+			// We need to un-format the phone number before sending it
+			const cleanedPhone = '+1' + phone.replace(/\D/g, '')
+			await initSignUp(cleanedPhone)
+			navigation.navigate('VerifyNumber', { phone: cleanedPhone })
+		} catch (error) {
+			Alert.alert('Error', 'Could not initiate sign up. Please try again.')
+		} finally {
+			setIsLoading(false)
+		}
 	}
 
 	return (
@@ -55,12 +80,7 @@ const SignUpScreen = ({ navigation }: Props) => {
 					<Text style={styles.title}>SIGN UP</Text>
 
 					<Text style={styles.label}>Your phone number*</Text>
-					<View
-						style={[
-							styles.phoneInputContainer,
-							!isValid && phone.length > 0 && styles.invalidInput,
-						]}
-					>
+					<View style={styles.phoneInputContainer}>
 						<Text style={styles.countryCode}>+1</Text>
 						<TextInput
 							style={styles.input}
@@ -73,15 +93,9 @@ const SignUpScreen = ({ navigation }: Props) => {
 						/>
 					</View>
 
-					{!isValid && phone.length > 0 ? (
-						<Text style={styles.errorText}>
-							Please enter a valid phone number.
-						</Text>
-					) : (
-						<Text style={styles.note}>
-							*We never share this with anyone and it won't be on your profile.
-						</Text>
-					)}
+					<Text style={styles.note}>
+						*We never share this with anyone and it won't be on your profile.
+					</Text>
 
 					<View
 						style={[
@@ -90,12 +104,20 @@ const SignUpScreen = ({ navigation }: Props) => {
 						]}
 					>
 						<PrimaryButton
-							title='CONTINUE'
-							onPress={() => {
-								/* Handle Continue */
-							}}
-							disabled={!isValid}
-							style={!isValid ? styles.disabledButton : undefined}
+							title={
+								isLoading ? (
+									<ActivityIndicator color={colors.black} />
+								) : (
+									'CONTINUE'
+								)
+							}
+							onPress={handleContinue}
+							disabled={isLoading || phone.length < 14}
+							style={
+								isLoading || phone.length < 14
+									? styles.disabledButton
+									: undefined
+							}
 						/>
 					</View>
 				</Animated.View>
@@ -134,9 +156,6 @@ const styles = StyleSheet.create({
 		borderColor: colors.primary,
 		borderRadius: 8,
 	},
-	invalidInput: {
-		borderColor: 'red',
-	},
 	countryCode: {
 		fontFamily: 'Inter_400Regular',
 		color: colors.text,
@@ -155,12 +174,6 @@ const styles = StyleSheet.create({
 		color: '#888',
 		fontSize: 14,
 		marginTop: 15,
-	},
-	errorText: {
-		fontFamily: 'Inter_400Regular',
-		color: 'red',
-		fontSize: 14,
-		marginTop: 10,
 	},
 	buttonContainer: {
 		flex: 1,

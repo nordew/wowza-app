@@ -10,7 +10,7 @@ import {
 
 type PrimaryButtonProps = {
 	onPress: () => void
-	title: string
+	title: React.ReactNode
 	style?: ViewStyle
 	textStyle?: TextStyle
 	disabled?: boolean
@@ -29,7 +29,11 @@ const PrimaryButton = ({
 			onPress={onPress}
 			disabled={disabled}
 		>
-			<Text style={[styles.buttonText, textStyle]}>{title}</Text>
+			{typeof title === 'string' ? (
+				<Text style={[styles.buttonText, textStyle]}>{title}</Text>
+			) : (
+				title
+			)}
 		</TouchableOpacity>
 	)
 }

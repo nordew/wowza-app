@@ -76,9 +76,7 @@ const AuthGatewayScreen = ({ navigation }: Props) => {
 				/>
 				<SecondaryButton
 					title='LOG IN'
-					onPress={() => {
-						/* Navigate to Log In Screen */
-					}}
+					onPress={() => navigation.navigate('Login')}
 				/>
 			</Animated.View>
 		</View>
